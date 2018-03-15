@@ -1,5 +1,6 @@
 # registry-auth
 Docker Registry V2 Auth Server
+基于Docker Registry V2的token认证方式实现，可与java项目进行整合，通过实现接口，与已有项目的用户权限模块进行对接，实现私有docker镜像仓库的认证复用已有应用的用户权限数据。
 
 # Docker Registry V2 token 认证介绍
 docker官方文档地址：https://docs.docker.com/registry/spec/auth/token/

@@ -1,6 +1,9 @@
 package com.zhangj.registry.auth.service;
 
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Throwables;
+import com.google.common.io.Resources;
 import com.zhangj.registry.auth.filters.AccessFilter;
 import com.zhangj.registry.auth.filters.RegistryFilter;
 import com.zhangj.registry.auth.filters.RepositoryFilter;
@@ -9,9 +12,6 @@ import com.zhangj.registry.auth.model.Account;
 import com.zhangj.registry.auth.model.UserInfo;
 import com.zhangj.registry.auth.properties.RegistryAuthProperties;
 import com.zhangj.registry.auth.token.AccountLoginToken;
-import com.google.common.base.Charsets;
-import com.google.common.base.Throwables;
-import com.google.common.io.Resources;
 import jodd.util.Base32;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -73,7 +73,7 @@ public class RegistryAuthService {
 
     public String auth(HttpServletRequest request) {
         String service = request.getParameter("service");
-       log.info("[{}]Request service: [{}]",request.getRemoteHost(),service);
+        log.info("[{}]Request service: [{}]", request.getRemoteHost(), service);
         if (StringUtils.isEmpty(service) || !service.equals(registryAuthProperties.getService())) {
             return null;
         }
@@ -101,7 +101,7 @@ public class RegistryAuthService {
         userInfoDto.setUserId(account.getId());
         userInfoDto.setIsAdmin(isAdmin(account.getId()));
         String scope = request.getParameter("scope");
-        log.info("[{}]Request scope: [{}]",request.getRemoteHost(),scope);
+        log.info("[{}]Request scope: [{}]", request.getRemoteHost(), scope);
         if (!StringUtils.isEmpty(scope)) {
             String[] scopes = scope.split(" ");
             for (String s : scopes) {
@@ -182,13 +182,13 @@ public class RegistryAuthService {
     }
 
     protected PublicKey getPublicCertKey() throws Exception {
-        byte[] keyBytes = new BASE64Decoder().decodeBuffer(formatPublicKey(getResourceBytes("auth.crt")));
+        byte[] keyBytes = new BASE64Decoder().decodeBuffer(formatPublicKey(getResourceBytes(registryAuthProperties.getPublicKeyPath())));
         return CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(keyBytes)).getPublicKey();
     }
 
     protected PrivateKey getPrivateKey() throws Exception {
         PKCS8EncodedKeySpec priPKCS8;
-        priPKCS8 = new PKCS8EncodedKeySpec(new BASE64Decoder().decodeBuffer(formatPrivateKey(getResourceBytes("auth.key"))));
+        priPKCS8 = new PKCS8EncodedKeySpec(new BASE64Decoder().decodeBuffer(formatPrivateKey(getResourceBytes(registryAuthProperties.getPrivateKeyPath()))));
         KeyFactory keyf = KeyFactory.getInstance("RSA");
         return keyf.generatePrivate(priPKCS8);
     }

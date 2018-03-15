@@ -4,3 +4,5 @@ components:
     issuer: Dopware Auth service
     #token过期时间（minute）
     tokenExpire: 180
+    publicKeyPath: keyfile/auth.crt
+    privateKeyPath: keyfile/auth.key

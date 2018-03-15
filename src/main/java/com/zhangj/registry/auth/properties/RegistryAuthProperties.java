@@ -16,5 +16,7 @@ public class RegistryAuthProperties {
     private String service;
     private String issuer;
     private String tokenExpire;
+    private String publicKeyPath;
+    private String privateKeyPath;
 
 }

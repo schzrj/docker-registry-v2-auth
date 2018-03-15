@@ -1,7 +1,7 @@
 components:
   auth:
-    service: Dopware registry
-    issuer: Dopware Auth service
+    service: Registry auth server
+    issuer: Registry auth service
     #token过期时间（minute）
     tokenExpire: 180
     publicKeyPath: keyfile/auth.crt

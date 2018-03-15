@@ -1,0 +1,6 @@
+components:
+  auth:
+    service: Dopware registry
+    issuer: Dopware Auth service
+    #token过期时间（minute）
+    tokenExpire: 180

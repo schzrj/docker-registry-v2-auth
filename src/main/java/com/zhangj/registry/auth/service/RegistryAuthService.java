@@ -53,7 +53,6 @@ import java.util.concurrent.TimeUnit;
 @Component
 @Slf4j
 public class RegistryAuthService {
-    private AccountLoginToken accountLoginToken = null;
     private final AccountService accountService;
     private final RegistryAuthProperties registryAuthProperties;
     private final RepositoryFilter repositoryFilter;
@@ -75,23 +74,22 @@ public class RegistryAuthService {
         String service = request.getParameter("service");
         log.info("[{}]Request service: [{}]", request.getRemoteHost(), service);
         if (StringUtils.isEmpty(service) || !service.equals(registryAuthProperties.getService())) {
-            return null;
+            return "";
         }
-        accountLoginToken = checkAccount(request);
+        AccountLoginToken accountLoginToken = checkAccount(request);
         if (accountLoginToken == null) {
-            return null;
+            return "";
         }
         try {
-            return getDefaultJwtToken(accountLoginToken.getUserName(), service, getAccess(request)).getTokenWebJson();
+            return getDefaultJwtToken(accountLoginToken.getUserName(), service, getAccess(request, accountLoginToken.getUserName())).getTokenWebJson();
         } catch (Exception e) {
             log.error("Docker auth create jwt failure, cause: {}", Throwables.getStackTraceAsString(e));
         }
-        return null;
+        return "";
     }
 
-    private List<AccessScope> getAccess(HttpServletRequest request) {
+    private List<AccessScope> getAccess(HttpServletRequest request, String userName) {
         UserInfo userInfoDto = new UserInfo();
-        String userName = accountLoginToken.getUserName();
         List<AccessScope> list = new ArrayList<>();
         Account account = accountService.findByAccount(userName);
         if (account == null) {
@@ -120,27 +118,28 @@ public class RegistryAuthService {
     }
 
     private AccountLoginToken checkAccount(HttpServletRequest request) {
+        AccountLoginToken accountLoginToken = new AccountLoginToken(null, null);
         String authorization = request.getHeader("authorization");
         String prefix = "Basic ";
 
         if (StringUtils.isEmpty(authorization) || !authorization.startsWith(prefix)) {
-            return null;
+            return accountLoginToken;
         }
         String auth = authorization.substring(prefix.length());
         String accountInfoStr = new String(Base64Utils.decodeFromString(auth));
 
         if (StringUtils.isEmpty(accountInfoStr)) {
-            return null;
+            return accountLoginToken;
         }
         if (!accountInfoStr.contains(":")) {
-            return null;
+            return accountLoginToken;
         }
-        AccountLoginToken loginInfo = new AccountLoginToken(accountInfoStr.substring(0, accountInfoStr.indexOf(":")), accountInfoStr.substring(accountInfoStr.indexOf(":") + 1));
-        Account account = accountService.login(loginInfo.getUserName(), String.valueOf(loginInfo.getPassword()));
+        accountLoginToken = new AccountLoginToken(accountInfoStr.substring(0, accountInfoStr.indexOf(":")), accountInfoStr.substring(accountInfoStr.indexOf(":") + 1));
+        Account account = accountService.login(accountLoginToken.getUserName(), String.valueOf(accountLoginToken.getPassword()));
         if (account == null) {
-            return null;
+            return accountLoginToken;
         }
-        return loginInfo;
+        return accountLoginToken;
     }
 
     private Boolean isAdmin(Long userId) {
@@ -149,6 +148,9 @@ public class RegistryAuthService {
 
     private JWTBuilder getDefaultJwtToken(String username, String service, List<AccessScope> access) throws Exception {
         try {
+            if (StringUtils.isEmpty(username)) {
+                return new JWTBuilder();
+            }
             return new JWTBuilder().setProperties(registryAuthProperties)
                     .setHeader(getJWTHeader())
                     .setClaims(getDefaultClaims(username, service, access))

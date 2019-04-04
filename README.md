@@ -9,7 +9,7 @@ docker官方文档地址：https://docs.docker.com/registry/spec/auth/token/
 1. 生成密钥对 
 ```
  openssl req -newkey rsa:4096 -nodes -sha256 -keyout auth.key -x509 -days 365 -out auth.crt
-Generating a 4096 bit RSA private key
+
 ```
 2. 实现AccountService、ProjectService接口
 
